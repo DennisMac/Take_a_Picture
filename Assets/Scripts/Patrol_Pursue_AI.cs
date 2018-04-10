@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Patrol_Pursue_AI : MonoBehaviour {
     enum EnemyState {patrolling, pursuing };
@@ -12,12 +13,18 @@ public class Patrol_Pursue_AI : MonoBehaviour {
     private UnityStandardAssets.Characters.ThirdPerson.AICharacterControl AI;
     private EnemyState enemyState = EnemyState.patrolling;
     public float waypointDistance = 1f;
+    public float patrolSpeed = 0.75f;
+    public float pursueSpeed = 1f;
+    public static Transform playerTransform;
+    public float captureRadius = 2f;
 
     void Awake ()
     {
+
         //if (Waypoints.Length == 0)
         {
             Waypoints = FindObjectsOfType<Waypoint>();
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         }
         AI = GetComponent<UnityStandardAssets.Characters.ThirdPerson.AICharacterControl>();
         AI.target = GetNearestWaypoint();
@@ -40,6 +47,12 @@ public class Patrol_Pursue_AI : MonoBehaviour {
     // Update is called once per frame
     void Update ()
     {
+        if ((transform.position - playerTransform.position).magnitude < captureRadius)
+        {
+            //end level
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
         switch (enemyState)
         {
             case EnemyState.patrolling:
@@ -49,20 +62,23 @@ public class Patrol_Pursue_AI : MonoBehaviour {
                 Pursue();
                 break;
         }
-        
-		
 	}
 
     private void Pursue()
     {
+        AI.agent.speed = patrolSpeed;
+        //TODO: Check for capture
+        //TODO: Check for lost sight of player
         throw new NotImplementedException();
     }
 
     private void Patrol()
     {
+        AI.agent.speed = patrolSpeed;
+        //TODO: Check if player is in sight
         if ((transform.position - AI.target.position).magnitude < waypointDistance)
         {
-            FindNextWaypoint();
+           FindNextWaypoint();
         }
     }
 
